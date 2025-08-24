@@ -1,8 +1,9 @@
 :root {
-    --bg: rgb(35, 36, 44);
-    --game-color: rgb(40, 40, 40);
-    --board-color: rgb(30, 30, 30);
-    --border-color: rgb(60, 60, 60);
+    --black: black;
+    --white: white;
+    --red: red;
+    --green: green;
+    --blue: blue;
 }
 
 * {
@@ -14,11 +15,11 @@ html, body {
 }
 
 body {
-    background-color: var(--bg);
+    background-color: var(--black);
     font-family: "Borel", serif;
     font-weight: 400;
     font-style: normal;
-    color: white;
+    color: var(--white);
     margin: 0;
     display: flex;
     align-items: center;
@@ -29,7 +30,6 @@ body {
     display: block;
     width: min(90vmin, 720px);
     aspect-ratio: 1 / 1;
-    background-color: var(--game-color);
-    border-radius: 16px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 2px 6px rgba(0, 0, 0, 0.2);
+    background-color: var(--black);
+    cursor: crosshair;
 }
