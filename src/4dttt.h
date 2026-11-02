@@ -7,25 +7,31 @@
 
 typedef struct {
     U8 amount_of_players;
+    U8 turn;
     U8 d;
     U8 *board;
 } Game;
 
-typedef U8(*VF)(Game *);
-typedef U8(*PF)(Game *);
+typedef U0(*VF)(Game *);
+typedef U64(*PF)(Game *, U0 *);
 
 typedef struct {
     PF function;
-    U8 *name;
+    U0 *args;
 } Player;
 
 Game init_game(U8 d);
 U0 close_game(Game *);
 
-U8 *get_field(Game *, U8 *position);
+U64 get_field(U8 d, U8 *position);
 
-Bool do_move(Game *, U8 *position, U8 player);
+Bool validate_move(Game *game, U64 move);
+U0 do_move(Game *, U64 move, U8 player);
 
 U8 get_winner(Game *);
+
+U8 play(U8 d, VF vis, Player *players);
+
+U0 bg(Game *);
 
 #endif

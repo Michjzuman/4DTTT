@@ -6,7 +6,8 @@
 Game init_game(U8 d) {
     Game r = {
         .amount_of_players = d, .d = d,
-        .board = calloc(power(SIZE, d), 1)
+        .board = calloc(power(SIZE, d), 1),
+        .turn = 0
     };
     return r;
 }
@@ -15,20 +16,21 @@ U0 close_game(Game *game) {
     free(game->board);
 }
 
-U8 *get_field(Game *game, U8 *position) {
+U64 get_field(U8 d, U8 *position) {
     U64 i = 0;
-    for (U8 d = 0; d < game->d; d++) {
-        i += power(SIZE, d) * position[d];
+    for (U8 di = 0; di < d; di++) {
+        i += power(SIZE, di) * position[di];
     }
-    return &game->board[i];
+    return i;
 }
 
-Bool do_move(Game *game, U8 *position, U8 player) {
-    U8 *field = get_field(game, position);
-    if (*field == 0) {
-        *field = player; return TRUE;
-    }
-    return FALSE;
+Bool validate_move(Game *game, U64 move) {
+    return game->board[move] == 0;
+}
+
+U0 do_move(Game *game, U64 move, U8 player) {
+    U8 *field = &game->board[move];
+    if (validate_move(game, move)) *field = player;
 }
 
 U8 get_winner(Game *game) {
@@ -105,5 +107,27 @@ U8 get_winner(Game *game) {
             }
         }
     }
+    return 0;
+}
+
+U0 bg(Game *g) {}
+
+U8 play(U8 d, VF vis, Player *players) {
+    Game game;
+    U8 winner = 0;
+    do {
+        vis(&game);
+        {
+            Player p = players[game.turn];
+            U64 move = p.function(&game, p.args);
+            if (validate_move(&game, move)) {
+                do_move(&game, move, game.turn);
+            }
+        }
+        game.turn++;
+        game.turn %= game.amount_of_players;
+        winner = get_winner(&game);
+    } while (winner == 0);
+    vis(&game);
     return 0;
 }
