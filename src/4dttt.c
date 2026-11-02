@@ -1,23 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "utils.h"
-
-#define SIZE 3
-
-typedef struct {
-    U8 amount_of_players;
-    U8 d;
-    U8 *board;
-} Game;
-
-typedef U8(*VF)(Game *);
-typedef U8(*PF)(Game *);
-
-typedef struct {
-    PF function;
-    U8 *name;
-} Player;
+#include "4dttt.h"
 
 Game init_game(U8 d) {
     Game r = {
@@ -25,6 +9,10 @@ Game init_game(U8 d) {
         .board = calloc(power(SIZE, d), 1)
     };
     return r;
+}
+
+U0 close_game(Game *game) {
+    free(game->board);
 }
 
 U8 *get_field(Game *game, U8 *position) {
@@ -119,57 +107,3 @@ U8 get_winner(Game *game) {
     }
     return 0;
 }
-
-U0 draw2D(Game *game) {
-    for (U8 y = 0; y < SIZE; y++) {
-        for (U8 x = 0; x < SIZE; x++) {
-            printf("%u", game->board[SIZE * y + x]);
-            printf(x == SIZE - 1 ? "\n" : " ");
-        }
-    }
-}
-
-I32 main(U0) {
-    {
-        Game game = init_game(2);
-        do_move(&game, (U8[]){2, 0}, 1);
-        do_move(&game, (U8[]){2, 1}, 1);
-        do_move(&game, (U8[]){2, 2}, 1);
-        draw2D(&game);
-        printf("winner: %u\n---\n", get_winner(&game));
-    }
-    {
-        Game game = init_game(2);
-        do_move(&game, (U8[]){0, 1}, 1);
-        do_move(&game, (U8[]){1, 1}, 1);
-        do_move(&game, (U8[]){2, 1}, 1);
-        draw2D(&game);
-        printf("winner: %u\n---\n", get_winner(&game));
-    }
-    {
-        Game game = init_game(2);
-        do_move(&game, (U8[]){0, 0}, 1);
-        do_move(&game, (U8[]){1, 1}, 1);
-        do_move(&game, (U8[]){2, 2}, 1);
-        draw2D(&game);
-        printf("winner: %u\n---\n", get_winner(&game));
-    }
-    {
-        Game game = init_game(2);
-        do_move(&game, (U8[]){2, 0}, 1);
-        do_move(&game, (U8[]){1, 1}, 1);
-        do_move(&game, (U8[]){0, 2}, 1);
-        draw2D(&game);
-        printf("winner: %u\n---\n", get_winner(&game));
-    }
-    {
-        Game game = init_game(2);
-        do_move(&game, (U8[]){2, 0}, 1);
-        do_move(&game, (U8[]){1, 1}, 1);
-        do_move(&game, (U8[]){0, 0}, 1);
-        draw2D(&game);
-        printf("winner: %u\n---\n", get_winner(&game));
-    }
-    return 0;
-}
-
