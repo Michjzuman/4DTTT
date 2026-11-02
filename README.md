@@ -1,4 +1,4 @@
 # 4DTTT
 
-multidimensional tictactoe
+Multi-dimensional Tic Tac Toe
 
