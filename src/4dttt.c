@@ -12,6 +12,14 @@ Game init_game(U8 d) {
     return r;
 }
 
+Game copy_game(Game *src) {
+    Game game = *src;
+    U64 size = power(SIZE, src->d);
+    game.board = malloc(size);
+    memcpy(game.board, src->board, size);
+    return game;
+}
+
 U0 close_game(Game *game) {
     free(game->board);
 }
@@ -25,12 +33,12 @@ U64 get_field(U8 d, U8 *position) {
 }
 
 Bool validate_move(Game *game, U64 move) {
+    if (move >= power(SIZE, game->d)) return FALSE;
     return game->board[move] == 0;
 }
 
 U0 do_move(Game *game, U64 move, U8 player) {
-    U8 *field = &game->board[move];
-    if (validate_move(game, move)) *field = player;
+    game->board[move] = player + 1;
 }
 
 U8 get_winner(Game *game) {
@@ -113,13 +121,15 @@ U8 get_winner(Game *game) {
 U0 bg(Game *g) {}
 
 U8 play(U8 d, VF vis, Player *players) {
-    Game game;
+    Game game = init_game(d);
     U8 winner = 0;
     do {
         vis(&game);
         {
             Player p = players[game.turn];
-            U64 move = p.function(&game, p.args);
+            Game check_game = copy_game(&game);
+            U64 move = p.function(&check_game, p.args);
+            close_game(&check_game);
             if (validate_move(&game, move)) {
                 do_move(&game, move, game.turn);
             }
@@ -129,5 +139,6 @@ U8 play(U8 d, VF vis, Player *players) {
         winner = get_winner(&game);
     } while (winner == 0);
     vis(&game);
-    return 0;
+    close_game(&game);
+    return winner;
 }

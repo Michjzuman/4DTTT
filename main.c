@@ -1,8 +1,10 @@
 #include <stdio.h>
+#include <unistd.h>
 
-#include "4dttt.h"
+#include "bots.h"
 
 U0 draw(Game *game) {
+    system("clear");
     if (game->d == 2) {
         for (U8 y = 0; y < SIZE; y++) {
             for (U8 x = 0; x < SIZE; x++) {
@@ -20,18 +22,19 @@ U0 draw(Game *game) {
             }
             printf(z == SIZE - 1 ? "" : "-----\n");
         }
+        printf("=====\n");
     }
+    sleep(1);
 }
 
 I32 main(U0) {
-    Game game = init_game(3);
-
-    do_move(&game, get_field(game.d, (U8[]){2, 0, 0}), 1);
-    do_move(&game, get_field(game.d, (U8[]){1, 0, 1}), 1);
-    do_move(&game, get_field(game.d, (U8[]){0, 0, 2}), 1);
-
-    draw(&game);
-    printf("winner: %u\n", get_winner(&game));
+    printf("winner: %u\n", play(
+        2, draw, (Player[]){
+            {jonkler, NULL},
+            {jonkler, NULL},
+            {jonkler, NULL}
+        }
+    ));
     
     return 0;
 }
