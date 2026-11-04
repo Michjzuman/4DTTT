@@ -10,4 +10,4 @@ all: 4dttt
 	clang $(SRC) main.c $(FLAGS) -o 4dttt
 
 debug: $(ALL)
-	clang $(SRC) main.c $(FLAGS) -o 4dttt -g -O0
+	clang $(SRC) main.c $(FLAGS) -o 4dttt -g -O0 -D DEBUG

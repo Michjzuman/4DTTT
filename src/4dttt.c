@@ -41,90 +41,116 @@ U0 do_move(Game *game, U64 move, U8 player) {
     game->board[move] = player + 1;
 }
 
-U8 get_winner(Game *game) {
-    if (game->d == 1) {
-        U8 *b = game->board;
-        if (b[0] == b[1] && b[0] == b[2]) {
-            return game->board[0];
+MetaField *get_metaboard(Game *game) {
+    U64 size = power(SIZE, game->d);
+    MetaField *mb = malloc(size * sizeof(MetaField));
+    for (U64 i = 0; i < size; i++) {
+        mb[i] = (MetaField){
+            .value = game->board[i],
+            .field = i
+        };
+    }
+    return mb;
+}
+
+GameResult get_winner_recursion(U8 d, MetaField *mb) {
+    if (d == 1) {
+        if (mb[0].value != 0) {
+            Bool is_win = TRUE;
+            for (U8 i = 1; i < SIZE; i++) {
+                if (mb[0].value != mb[i].value) {
+                    is_win = FALSE;
+                    break;
+                }
+            }
+            if (is_win) {
+                GameResult result;
+                result.winner = mb[0].value;
+                for (U8 i = 0; i < SIZE; i++) {
+                    result.line[i] = mb[i].field;
+                }
+                return result;
+            }
         }
-    } else if (game->d >= 2) {
+    } else if (d >= 2) {
         U64 x = 0, y = 0;
-        U64 next_layer = power(SIZE, game->d - 1);
+        /*
+        if (d == 3) {
+            U64 size = power(SIZE, d);
+            Game g = init_game(4);
+            for (U64 i = 0; i < size; i++) {
+                printf("%llu", mb[i].field);
+                printf(i == size - 1 ? "\n" : ", ");
+                do_move(&g, mb[i].field, 0);
+            }
+            U0 draw(Game *, GameResult);
+            draw(&g, (GameResult){0});
+        }
+        */
+        U64 next_layer = power(SIZE, d - 1);
+        U64 piece_size = power(SIZE, d - 2);
         for (U8 i = 0; i < SIZE; i++) {
             {
-                U8 r = get_winner(&(Game){
-                    .amount_of_players = game->amount_of_players,
-                    .board = &game->board[y],
-                    .d = game->d - 1
-                });
-                if (r != 0) return r;
+                GameResult r = get_winner_recursion(d - 1, &mb[y]);
+                if (r.winner != 0) return r;
                 y += next_layer;
             }
             {
-                U64 piece_size = power(SIZE, game->d - 2);
-                U8 b[next_layer];
+                MetaField b[next_layer];
                 for (U8 i1 = 0; i1 < SIZE; i1++) {
                     memcpy(
                         &b[i1 * piece_size],
-                        &game->board[x + i1 * next_layer],
-                        piece_size
+                        &mb[x + i1 * next_layer],
+                        piece_size * sizeof(MetaField)
                     );
                 }
-                U8 r = get_winner(&(Game){
-                    .amount_of_players = game->amount_of_players,
-                    .board = b,
-                    .d = game->d - 1
-                });
-                if (r != 0) return r;
+                GameResult r = get_winner_recursion(d - 1, b);
+                if (r.winner != 0) return r;
                 x += piece_size;
             }
         }
         {
-            U64 piece_size = power(SIZE, game->d - 2);
-            {
-                U8 b[next_layer];
-                for (U8 i1 = 0; i1 < SIZE; i1++) {
-                    memcpy(
-                        &b[i1 * piece_size],
-                        &game->board[i1 * (next_layer + piece_size)],
-                        piece_size
-                    );
-                }
-                U8 r = get_winner(&(Game){
-                    .amount_of_players = game->amount_of_players,
-                    .board = b,
-                    .d = game->d - 1
-                });
-                if (r != 0) return r;
+            MetaField b[next_layer];
+            for (U8 i1 = 0; i1 < SIZE; i1++) {
+                memcpy(
+                    &b[i1 * piece_size],
+                    &mb[i1 * (next_layer + piece_size)],
+                    piece_size * sizeof(MetaField)
+                );
             }
-            {
-                U8 b[next_layer];
-                for (U8 i1 = 0; i1 < SIZE; i1++) {
-                    memcpy(
-                        &b[i1 * piece_size],
-                        &game->board[(SIZE - 1) + i1 * (next_layer - piece_size)],
-                        piece_size
-                    );
-                }
-                U8 r = get_winner(&(Game){
-                    .amount_of_players = game->amount_of_players,
-                    .board = b,
-                    .d = game->d - 1
-                });
-                if (r != 0) return r;
+            GameResult r = get_winner_recursion(d - 1, b);
+            if (r.winner != 0) return r;
+        }
+        {
+            MetaField b[next_layer];
+            for (U8 i1 = 0; i1 < SIZE; i1++) {
+                memcpy(
+                    &b[i1 * piece_size],
+                    &mb[(next_layer - piece_size) + i1 * (next_layer - piece_size)],
+                    piece_size * sizeof(MetaField)
+                );
             }
+            GameResult r = get_winner_recursion(d - 1, b);
+            if (r.winner != 0) return r;
         }
     }
-    return 0;
+    return (GameResult){0};
 }
 
-U0 bg(Game *g) {}
+GameResult get_winner(U8 d, Game *game) {
+    MetaField *mb = get_metaboard(game);
+    GameResult result = get_winner_recursion(game->d, mb);
+    free(mb);
+    return result;
+}
 
-U8 play(U8 d, VF vis, Player *players) {
+U0 bg(Game *g, GameResult r) {}
+
+GameResult play(U8 d, VF vis, Player *players) {
     Game game = init_game(d);
-    U8 winner = 0;
+    GameResult result = {0};
     do {
-        vis(&game);
+        vis(&game, result);
         {
             Player p = players[game.turn];
             Game check_game = copy_game(&game);
@@ -136,9 +162,9 @@ U8 play(U8 d, VF vis, Player *players) {
         }
         game.turn++;
         game.turn %= game.amount_of_players;
-        winner = get_winner(&game);
-    } while (winner == 0);
-    vis(&game);
+        result = get_winner(game.d, &game);
+    } while (result.winner == 0);
+    vis(&game, result);
     close_game(&game);
-    return winner;
+    return result;
 }
