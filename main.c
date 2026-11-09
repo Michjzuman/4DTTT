@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <unistd.h>
+#include <time.h>
 
 #include "bots.h"
+#include "tui.h"
 
 const char symbols[] = {' ', 'X', 'O', '*', '#'};
 
@@ -65,9 +67,11 @@ U0 draw(Game *game, GameResult result) {
 }
 
 I32 main(U0) {
-    play(4, draw, (Player[]){
+    srand(time(NULL));
+    play(4, tui, (Player[]){
         {jonkler, NULL}, {jonkler, NULL},
         {jonkler, NULL}, {jonkler, NULL}
     });
+    while (1) {}
     return 0;
 }

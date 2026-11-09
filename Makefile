@@ -1,13 +1,20 @@
+NAME = 4dttt
 
-ALL = src/* ./*.c
-SRC = src/*.c
+ENGINE = src/engine/*.c
 
-FLAGS = -I src
+FLAGS = -I src/engine
 
-all: 4dttt
+DEBUG ?= 0
+ifeq ($(DEBUG), 1)
+	FLAGS += -g -O0 -D DEBUG
+endif
 
-4dttt: $(ALL)
-	clang $(SRC) main.c $(FLAGS) -o 4dttt
+all: tui
 
-debug: $(ALL)
-	clang $(SRC) main.c $(FLAGS) -o 4dttt -g -O0 -D DEBUG
+TUI_FLAGS = $(FLAGS) -l ncurses -I src/tui
+TUI_SRC = $(ENGINE) src/tui/*.c
+
+tui: $(ALL)
+	clang $(TUI_SRC) $(TUI_FLAGS) -o $(NAME)
+
+
